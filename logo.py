@@ -11,8 +11,7 @@ class Logo:
     tick = 10
     speed = .25
 
-    dir_x = choice((-1, 1))
-    dir_y = choice((-1, 1))
+    dir_2d = [choice((-1, 1)), choice((-1, 1))]
 
     def __init__(self, root, window_size):
 
@@ -20,8 +19,7 @@ class Logo:
         self.window_size = window_size
         self.obj = Label(root)
 
-        self.pos_x = randint(0, window_size[0]-256)
-        self.pos_y = randint(0, window_size[1]-256)
+        self.pos_2d = [randint(0, window_size[0]-256), randint(0, window_size[1]-256)]
 
         # -= sets a value for 'self.photo_image'
         self.load_and_tint_image()
@@ -35,34 +33,35 @@ class Logo:
 
     def render(self):
 
-        max_x = self.root.winfo_width() - self.bounds[0]
-        max_y = self.root.winfo_height() - self.bounds[1]
+        # -Getting current window size
+        max_pos_2d = [self.root.winfo_width() - self.bounds[0], self.root.winfo_height() - self.bounds[1]]
 
-        self.pos_x += self.speed * self.dir_x * self.tick
-        self.pos_y += self.speed * self.dir_y * self.tick
+        # -For each axis in the position vector
+        for i in range(len(self.pos_2d)):
 
-        if self.pos_x >= max_x or self.pos_x <= 0:
-            self.dir_x *= -1
+            cur_pos_axis = self.pos_2d[i]
+            cur_dir_axis = self.dir_2d[i]
+            cur_max_pos_axis = max_pos_2d[i]
 
-            if self.pos_x >= max_x:
-                self.pos_x = max_x
-            else:
-                self.pos_x = 0
+            # -Increases or decreases position value based on update rate, speed, direction of the current axis
+            self.pos_2d[i] += self.speed * cur_dir_axis * self.tick
 
-            self.load_and_tint_image()
+            # -Collision check
+            if cur_pos_axis > cur_max_pos_axis or cur_pos_axis < 0:
 
-        if self.pos_y >= max_y or self.pos_y <= 0:
-            self.dir_y *= -1
+                if cur_pos_axis > cur_max_pos_axis:
+                    self.pos_2d[i] = cur_max_pos_axis
+                    self.dir_2d[i] = -1
+                else:
+                    self.pos_2d[i] = 0
+                    self.dir_2d[i] = 1
 
-            if self.pos_y >= max_y:
-                self.pos_y = max_y
-            else:
-                self.pos_y = 0
+                self.load_and_tint_image()
 
-            self.load_and_tint_image()
+        # -Apply new position
+        self.obj.place(x=self.pos_2d[0], y=self.pos_2d[1])
 
-        self.obj.place(x=self.pos_x, y=self.pos_y)
-
+        # -Do this function again
         self.loop()
 
     def load_and_tint_image(self):
