@@ -1,42 +1,42 @@
 from random import randint, choice
-from tkinter import PhotoImage, Label
+from tkinter import Label
+import cv2
+from PIL import Image, ImageTk
 
-class DVDLogo:
 
-    def __init__(self, w, window_size):
+class Logo:
 
-        self.w = w
+    photo_image = None
+
+    tick = 10
+    speed = .25
+
+    dir_x = choice((-1, 1))
+    dir_y = choice((-1, 1))
+
+    def __init__(self, root, window_size):
+
+        self.root = root
         self.window_size = window_size
-        self.initialized = False
+        self.obj = Label(root)
 
-        self.pos_x = randint(0, window_size[0])
-        self.pos_y = randint(0, window_size[1])
+        self.pos_x = randint(0, window_size[0]-256)
+        self.pos_y = randint(0, window_size[1]-256)
 
-        self.tick = 10
-        self.speed = .25
-        self.dir_x = choice((-1, 1))
-        self.dir_y = choice((-1, 1))
+        # -= sets a value for 'self.photo_image'
+        self.load_and_tint_image()
 
-        self.img = PhotoImage(file="dvd_logo.png")
-        self.img_size = (self.img.width(), self.img.height())
+        self.bounds = (self.photo_image.width(), self.photo_image.height())
 
-        self.obj = Label()
-        self.obj.config(width=self.img.width(), height=self.img.height(), image=self.img)
+        self.loop()
 
-        self.update()
+    def loop(self):
+        self.root.after(self.tick, self.render)
 
-    def update(self):
+    def render(self):
 
-        w = self.w
-        obj = self.obj
-
-        max_x = w.winfo_width() - self.img_size[0]
-        max_y = w.winfo_height() - self.img_size[1]
-
-        if self.initialized is False:
-            max_x = self.window_size[0] - self.img_size[0]
-            max_y = self.window_size[1] - self.img_size[1]
-            self.initialized = True
+        max_x = self.root.winfo_width() - self.bounds[0]
+        max_y = self.root.winfo_height() - self.bounds[1]
 
         self.pos_x += self.speed * self.dir_x * self.tick
         self.pos_y += self.speed * self.dir_y * self.tick
@@ -49,6 +49,8 @@ class DVDLogo:
             else:
                 self.pos_x = 0
 
+            self.load_and_tint_image()
+
         if self.pos_y >= max_y or self.pos_y <= 0:
             self.dir_y *= -1
 
@@ -57,6 +59,40 @@ class DVDLogo:
             else:
                 self.pos_y = 0
 
-        obj.place(x=self.pos_x, y=self.pos_y)
-        w.after(self.tick, lambda: self.update())
+            self.load_and_tint_image()
 
+        self.obj.place(x=self.pos_x, y=self.pos_y)
+
+        self.loop()
+
+    def load_and_tint_image(self):
+
+        # -Getting PhotoImage
+        self.photo_image = self.tint_image('dvd_logo.png', 25, 200)
+
+        # -Applying PhotoImage to Label
+        self.obj.config(image=self.photo_image)
+
+    def tint_image(self, path, min_brightness, max_brightness):
+
+        # -Loading image data from path
+        rgba_data = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+
+        # -Generate random RGB color
+        tint = self.random_rgb_color(min_brightness, max_brightness)
+
+        # -Get 'tint' R G B and apply it in rgba_data's R G B
+        for channel in range(len(tint)):
+            rgba_data[:, :, channel] = tint[channel]
+
+        # -Converting from image data to tkinter's PhotoImage
+        image = Image.fromarray(rgba_data)
+        return ImageTk.PhotoImage(image)
+
+    @staticmethod
+    def random_rgb_color(min_brightness, max_brightness):
+        rgb = []
+        for c in range(3):
+            rgb.append(randint(min_brightness, max_brightness))
+
+        return rgb

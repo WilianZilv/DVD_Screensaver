@@ -1,21 +1,14 @@
 from tkinter import *
-from logo import DVDLogo
+from logo import Logo
 
-class Main:
 
-    def __init__(self):
+window_size = (960, 640)
+root = Tk()
+root.title('DVD Screensaver')
 
-        window_size = (960, 640)
+root.geometry('{}x{}'.format(window_size[0], window_size[1]))
+root.minsize(width=256, height=256)
 
-        # -WINDOW INITIALIZE
-        w = Tk()
-        w.title('DVD Screensaver')
-        w.geometry('{}x{}'.format(window_size[0], window_size[1]))
-        w.minsize(width=256, height=256)
+Logo(root, window_size)
 
-        # -ELEMENT
-        DVDLogo(w, window_size)
-
-        w.mainloop()
-
-Main()
+root.mainloop()
